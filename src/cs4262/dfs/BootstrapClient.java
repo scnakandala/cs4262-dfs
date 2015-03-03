@@ -58,7 +58,7 @@ public class BootstrapClient {
         return null;
     }
     
-    private boolean unregister(){
+    public boolean unregister(){
         String host = dfsProperties.getProperty("node.host", "");
         String port = dfsProperties.getProperty("node.port", "");
         String username = dfsProperties.getProperty("node.username", "");
