@@ -43,6 +43,9 @@ public class ConsoleReader extends Thread {
                     if(fileRepository.checkFileExists(input)){
                         System.out.println("local node contains the file "+input);
                     }else{
+                        System.out.println("Not Found in Local Node."
+                                + "\nPassing the message to neighbors");
+                        Communicator.sendQuery(input);
                         //Todo
                         //Pass the query to neighbours
                     }

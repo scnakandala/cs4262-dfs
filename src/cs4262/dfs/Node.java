@@ -4,6 +4,8 @@ import cs4262.dfs.utils.DFSProperties;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
 import java.net.Socket;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -37,8 +39,15 @@ public class Node extends Thread {
                     Integer.parseInt(dfsProperties.getProperty("bs.port", "")));
             BufferedReader in = new BufferedReader(new InputStreamReader(
                     socket.getInputStream()));
+            
+            DatagramSocket s = new DatagramSocket (7000);
+            byte [] data = new byte [100];
+            DatagramPacket dgp = new DatagramPacket (data, data.length);
             while (true) {
-                String query = in.readLine();
+                s.receive (dgp);
+                //String query = in.readLine();
+                //System.out.println(query);
+                System.out.println ("Received Query Message: "+new String (data));
                 //Todo
                 //Process the query. Chek it is locally available. Else forward
                 //to some neighbours
