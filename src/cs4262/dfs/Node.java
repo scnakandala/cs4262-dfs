@@ -31,8 +31,16 @@ public class Node extends Thread {
     }
 
     @Override
-    public void run() {
+    public void run() {       
         try {
+            final DatagramSocket s = new DatagramSocket (7000);
+            Runtime.getRuntime().addShutdownHook(new Thread() {
+                    public void run() {
+                        //When shutting down close the UDP Socket
+                        s.close();
+                    }
+            });
+            
             String host = dfsProperties.getProperty("node.host", "");
             String port = dfsProperties.getProperty("node.port", "");
             Socket socket = new Socket(dfsProperties.getProperty("bs.host", ""),
@@ -40,9 +48,9 @@ public class Node extends Thread {
             BufferedReader in = new BufferedReader(new InputStreamReader(
                     socket.getInputStream()));
             
-            DatagramSocket s = new DatagramSocket (7000);
             byte [] data = new byte [100];
             DatagramPacket dgp = new DatagramPacket (data, data.length);
+            
             while (true) {
                 s.receive (dgp);
                 //String query = in.readLine();
@@ -51,6 +59,7 @@ public class Node extends Thread {
                 //Todo
                 //Process the query. Chek it is locally available. Else forward
                 //to some neighbours
+                
             }
         } catch (IOException ex) {
             Logger.getLogger(Node.class.getName()).log(Level.SEVERE, null, ex);
