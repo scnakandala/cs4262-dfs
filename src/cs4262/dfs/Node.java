@@ -53,12 +53,7 @@ public class Node extends Thread {
             
             while (true) {
                 s.receive (dgp);
-                //String query = in.readLine();
-                //System.out.println(query);
-                System.out.println ("Received Query Message: "+new String (data));
-                //Todo
-                //Process the query. Chek it is locally available. Else forward
-                //to some neighbours
+                Communicator.processQuery(new String (data).trim());
                 
             }
         } catch (IOException ex) {
