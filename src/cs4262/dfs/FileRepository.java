@@ -64,4 +64,9 @@ public class FileRepository {
         }
         return false;
     }
+    
+    public ArrayList<String> getAllFilesForQuery(String query){
+        //TODO getting the list of files for query
+        return new ArrayList<String>();
+    }
 }

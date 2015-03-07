@@ -1,6 +1,7 @@
 package cs4262.dfs;
 
 import java.util.ArrayList;
+import java.util.Random;
 
 public class RoutingTable {
 
@@ -29,5 +30,23 @@ public class RoutingTable {
     
     public ArrayList<String> getNodes(){
         return this.nodes;
+    }
+    
+    public ArrayList<String> getRandomThreeNeighBours(){
+        ArrayList<String> selected= new ArrayList<String>();
+        ArrayList<String> temp= new ArrayList<String>(this.nodes);
+        Random rand = new Random();
+        for(int i=0;i<3;i++){
+            selected.add(temp.remove(rand.nextInt(temp.size())));
+        }
+        return selected;
+    }
+    
+    public String getMyIP(){
+        return "localhost";
+    }
+    
+    public int getPort(){
+        return 7000;
     }
 }

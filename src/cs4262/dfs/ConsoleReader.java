@@ -45,7 +45,9 @@ public class ConsoleReader extends Thread {
                     }else{
                         System.out.println("Not Found in Local Node."
                                 + "\nPassing the message to neighbors");
-                        Communicator.sendQuery(input);
+                        String ip = RoutingTable.getInstance().getMyIP();
+                        int port = RoutingTable.getInstance().getPort();
+                        Communicator.forwardQuery(ip, port, input, 10);
                         //Todo
                         //Pass the query to neighbours
                     }
