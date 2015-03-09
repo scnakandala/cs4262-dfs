@@ -1,5 +1,6 @@
 package cs4262.dfs;
 
+import cs4262.dfs.utils.DFSProperties;
 import java.util.ArrayList;
 import java.util.Random;
 
@@ -43,10 +44,11 @@ public class RoutingTable {
     }
     
     public String getMyIP(){
-        return "localhost";
+        return DFSProperties.getInstance().getProperty("node.host", "localhost");
     }
     
     public int getPort(){
-        return 7000;
+        return Integer.parseInt(DFSProperties.getInstance()
+                .getProperty("node.port", "localhost"));
     }
 }

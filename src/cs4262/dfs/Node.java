@@ -18,16 +18,6 @@ public class Node extends Thread {
     public Node() {
         this.dfsProperties = DFSProperties.getInstance();
         this.bootstrapClient = new BootstrapClient();
-
-        Runtime.getRuntime().addShutdownHook(new Thread() {
-            public void run() {
-                //When shutting down UNREG the peer node from bootstrap server
-                bootstrapClient.unregister();
-
-                //Todo
-                //Informing neighbors for gracefully leaving the network                
-            }
-        });
     }
 
     @Override

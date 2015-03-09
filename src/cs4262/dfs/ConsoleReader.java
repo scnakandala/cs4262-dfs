@@ -48,8 +48,6 @@ public class ConsoleReader extends Thread {
                         String ip = RoutingTable.getInstance().getMyIP();
                         int port = RoutingTable.getInstance().getPort();
                         Communicator.forwardQuery(ip, port, input, 10);
-                        //Todo
-                        //Pass the query to neighbours
                     }
                 }
             }

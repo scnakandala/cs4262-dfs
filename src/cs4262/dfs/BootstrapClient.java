@@ -1,17 +1,14 @@
 package cs4262.dfs;
 
+import cs4262.dfs.communicators.UDPClient;
 import cs4262.dfs.utils.DFSProperties;
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
-import java.net.Socket;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class BootstrapClient {
 
-    private DFSProperties dfsProperties;
+    private final DFSProperties dfsProperties;
 
     public BootstrapClient() {
         this.dfsProperties = DFSProperties.getInstance();
@@ -24,31 +21,18 @@ public class BootstrapClient {
         String command = " REG " + host + " " + port + " " + username;
         int length = command.toCharArray().length;
         length += 5;
-        if (length > 999) {
-            command = length + " " + command;
-        } else if (length > 99) {
-            command = "0" + length + " " + command;
-        } else if (length > 9) {
-            command = "00" + length + " " + command;
-        } else {
-            command = "000" + length + " " + command;
-        }
+        command = String.format("%04d", length) + " " + command;
 
         try {
-            Socket socket = new Socket(dfsProperties.getProperty("bs.host", ""),
-                    Integer.parseInt(dfsProperties.getProperty("bs.port", "")));
-            PrintWriter out
-                    = new PrintWriter(socket.getOutputStream(), true);
-            BufferedReader in
-                    = new BufferedReader(
-                            new InputStreamReader(socket.getInputStream()));
-            out.print(command);
-            out.flush();
-            String response = in.readLine();
+            UDPClient udpClient = new UDPClient();
+            String bsHost = dfsProperties.getProperty("bs.host", "");
+            int bsPort = Integer.parseInt(dfsProperties.getProperty("bs.port", ""));
+            String response = udpClient
+                    .sendAndReceiveQuery(command, bsHost, bsPort);            
             Logger.getLogger(BootstrapClient.class.getName()).log(Level.INFO,
-                    "Send Command :" + command);
+                    "Send Command :{0}", command);
             Logger.getLogger(BootstrapClient.class.getName()).log(Level.INFO,
-                    "Received Response :" + response);
+                    "Received Response :{0}", response);
             return parseResponse(response);
         } catch (IOException ex) {
             Logger.getLogger(BootstrapClient.class.getName()).log(Level.SEVERE,
@@ -65,31 +49,18 @@ public class BootstrapClient {
         String command = " UNREG " + host + " " + port + " " + username;
         int length = command.toCharArray().length;
         length += 5;
-        if (length > 999) {
-            command = length + " " + command;
-        } else if (length > 99) {
-            command = "0" + length + " " + command;
-        } else if (length > 9) {
-            command = "00" + length + " " + command;
-        } else {
-            command = "000" + length + " " + command;
-        }
+        command = String.format("%04d", length) + " " + command;
 
         try {
-            Socket socket = new Socket(dfsProperties.getProperty("bs.host", ""),
-                    Integer.parseInt(dfsProperties.getProperty("bs.port", "")));
-            PrintWriter out
-                    = new PrintWriter(socket.getOutputStream(), true);
-            BufferedReader in
-                    = new BufferedReader(
-                            new InputStreamReader(socket.getInputStream()));
-            out.print(command);
-            out.flush();
-            String response = in.readLine();
+            UDPClient udpClient = new UDPClient();
+            String bsHost = dfsProperties.getProperty("bs.host", "");
+            int bsPort = Integer.parseInt(dfsProperties.getProperty("bs.port", ""));
+            String response = udpClient
+                    .sendAndReceiveQuery(command, bsHost, bsPort);            
             Logger.getLogger(BootstrapClient.class.getName()).log(Level.INFO,
-                    "Send Command :" + command);            
+                    "Send Command :{0}", command);            
             Logger.getLogger(BootstrapClient.class.getName()).log(Level.INFO,
-                    "Received Response :" + response);
+                    "Received Response :{0}", response);
             return true;
         } catch (IOException ex) {
             Logger.getLogger(BootstrapClient.class.getName()).log(Level.SEVERE,
@@ -99,15 +70,19 @@ public class BootstrapClient {
     }
 
     private String[] parseResponse(String response) {
-        int length = Integer.parseInt(response.toCharArray()[11] + "");
+        int length = Integer.parseInt(response.split(" ")[2]);
         if(length==0){
+            return null;
+        }else if(length >= 9996){
+            Logger.getLogger(BootstrapClient.class.getName()).log(Level.SEVERE,
+                    "Communication failed with BS. Error Code:{0}", length);
             return null;
         }
         String[] nodes = new String[length];
         response = response.substring(12).trim();
         String[] parameters = response.split(" ");
         for(int i=0;i<length;i++){
-            nodes[i] = parameters[i*2] + parameters[i*2+1];
+            nodes[i] = parameters[i*2] + " " + parameters[i*2+1];
         }
         return nodes;
     }

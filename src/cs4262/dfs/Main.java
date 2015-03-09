@@ -3,17 +3,18 @@ package cs4262.dfs;
 public class Main {
 
     public static void main(String[] args) throws InterruptedException {
-        
+                
         //Starting peer node
-        Node node = new Node();
-        node.start();
+        //Node node = new Node();
+        //node.start();
         
         //Starting console reader
         ConsoleReader consoleReader = new ConsoleReader();
         consoleReader.start();
         
         //Registering with the bootstrap server and initialising routing tables
-        BootstrapClient bootstrapClient = new BootstrapClient();
+        final BootstrapClient bootstrapClient = new BootstrapClient();
+        
         RoutingTable routingTable = RoutingTable.getInstance();
         String[] nodes = bootstrapClient.register();
         if (nodes != null) {
@@ -23,7 +24,7 @@ public class Main {
         }
         
         //Waiting for the peer node to stop
-        node.join();
+        //node.join();
         //Waiting for the console reader to stop
         consoleReader.join();
     }
