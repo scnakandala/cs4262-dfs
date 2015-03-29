@@ -31,7 +31,8 @@ public class UDPClient {
         InetAddress IPAddress = InetAddress.getByName(ip);
         byte[] sendData = new byte[1024];
         sendData = query.getBytes();
-        DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, IPAddress, port);
+        DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length,
+                IPAddress, port);
         clientSocket.send(sendPacket);
     }
 }

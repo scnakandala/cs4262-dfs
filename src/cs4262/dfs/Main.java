@@ -2,30 +2,34 @@ package cs4262.dfs;
 
 public class Main {
 
+    public static int hopCount = 10;
+    public static boolean debug = false;
+    
     public static void main(String[] args) throws InterruptedException {
-                
-        //Starting peer node
-        //Node node = new Node();
-        //node.start();
-        
-        //Starting console reader
-        ConsoleReader consoleReader = new ConsoleReader();
-        consoleReader.start();
-        
-        //Registering with the bootstrap server and initialising routing tables
+
+        final Node node = UDPNode.getInstance();
         final BootstrapClient bootstrapClient = new BootstrapClient();
-        
-        RoutingTable routingTable = RoutingTable.getInstance();
+        final RoutingTable routingTable = RoutingTable.getInstance();
+        final ConsoleReader consoleReader = new ConsoleReader(node);
+
+        Runtime.getRuntime().addShutdownHook(new Thread() {
+            public void run() {
+                bootstrapClient.unregister();
+                node.informLeaveToPeers();
+            }
+        });
+
+        consoleReader.start();
         String[] nodes = bootstrapClient.register();
         if (nodes != null) {
             for (int i = 0; i < nodes.length; i++) {
                 routingTable.addNode(nodes[i]);
             }
         }
-        
-        //Waiting for the peer node to stop
-        //node.join();
-        //Waiting for the console reader to stop
+        node.informJoinToPeers();
+        node.start();
+
+        node.join();
         consoleReader.join();
     }
 }

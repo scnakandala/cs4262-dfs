@@ -35,15 +35,17 @@ public class FileRepository {
             
             //removing 15 random files to get 5 remaining random files.
             for(int i=0;i<15;i++){
-                int rand = (int)Math.random()*fileNames.size();
+                int rand = (int)(Math.random()*fileNames.size());
                 fileNames.remove(rand);
             }
             
         } catch (FileNotFoundException ex) {
+            if(Main.debug)
             Logger.getLogger(FileRepository.class.getName()).log(Level.SEVERE,
                     null, ex);
             System.exit(-1);
         } catch (IOException ex) {
+            if(Main.debug)
             Logger.getLogger(FileRepository.class.getName()).log(Level.SEVERE,
                     null, ex);
             System.exit(-1);
@@ -65,8 +67,26 @@ public class FileRepository {
         return false;
     }
     
-    public ArrayList<String> getAllFilesForQuery(String query){
-        //TODO getting the list of files for query
-        return new ArrayList<String>();
+    public ArrayList<String> getAllFilesForQuery(String fileName){
+        ArrayList<String> matchingFiles =  new ArrayList<String>();
+        for(int i=0;i<fileNames.size();i++){
+            String temp = fileNames.get(i);
+            temp = temp.toLowerCase();
+            temp = temp.replaceAll(" ", "");
+            fileName = fileName.toLowerCase();
+            fileName = fileName.replaceAll(" ", "");
+            if(temp.contains(fileName)){
+                matchingFiles.add(fileNames.get(i));
+            }
+        }
+        return matchingFiles;
+    }
+    
+    public void printFileList(){
+        System.out.println("-----------Files in the local node-----------------");
+        for(int i=0;i<fileNames.size();i++){
+            System.out.println(" * "+fileNames.get(i));            
+        }
+        System.out.println("---------------------------------------------------");
     }
 }

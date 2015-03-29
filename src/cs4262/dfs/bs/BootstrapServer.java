@@ -81,7 +81,6 @@ public class BootstrapServer {
                                 while (random_1 == random_2) {
                                     random_2 = r.nextInt(High - Low) + Low;
                                 }
-                                echo(random_1 + " " + random_2);
                                 reply += "2 " + nodes.get(random_1).getIp() 
                                         + " " + nodes.get(random_1).getPort() 
                                         + " " + nodes.get(random_2).getIp() 

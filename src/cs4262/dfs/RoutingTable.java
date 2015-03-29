@@ -22,6 +22,11 @@ public class RoutingTable {
     }
 
     public void addNode(String node) {
+        for(int i=0;i<nodes.size();i++){
+            if(nodes.get(i).equals(node)){
+                return;
+            }
+        }
         nodes.add(node);
     }
 
