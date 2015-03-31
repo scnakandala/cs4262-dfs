@@ -29,17 +29,13 @@ public class BootstrapClient {
             int bsPort = Integer.parseInt(dfsProperties.getProperty("bs.port", ""));
             String response = udpClient
                     .sendAndReceiveQuery(command, bsHost, bsPort);
-            if(Main.debug)
-            Logger.getLogger(BootstrapClient.class.getName()).log(Level.INFO,
-                    "Send Command :{0}", command);
-            if(Main.debug)
-            Logger.getLogger(BootstrapClient.class.getName()).log(Level.INFO,
-                    "Received Response :{0}", response);
+            if(Main.debug){
+                System.out.println("Send Command :"+ command);            
+                System.out.println("Received Response :" + response);
+            }
             return parseResponse(response);
         } catch (IOException ex) {
-            if(Main.debug)
-            Logger.getLogger(BootstrapClient.class.getName()).log(Level.SEVERE,
-                    null, ex);
+            ex.printStackTrace();
         }
 
         return null;
@@ -60,17 +56,13 @@ public class BootstrapClient {
             int bsPort = Integer.parseInt(dfsProperties.getProperty("bs.port", ""));
             String response = udpClient
                     .sendAndReceiveQuery(command, bsHost, bsPort);
-            if(Main.debug)
-            Logger.getLogger(BootstrapClient.class.getName()).log(Level.INFO,
-                    "Send Command :{0}", command);
-            if(Main.debug)
-            Logger.getLogger(BootstrapClient.class.getName()).log(Level.INFO,
-                    "Received Response :{0}", response);
+            if(Main.debug){
+                System.out.println("Send Command :"+ command);            
+                System.out.println("Received Response :" + response);
+            }
             return true;
         } catch (IOException ex) {
-            if(Main.debug)
-            Logger.getLogger(BootstrapClient.class.getName()).log(Level.SEVERE,
-                    null, ex);
+            ex.printStackTrace();
         }
         return false;
     }
@@ -81,8 +73,7 @@ public class BootstrapClient {
             return null;
         } else if (length >= 9996) {
             if(Main.debug)
-            Logger.getLogger(BootstrapClient.class.getName()).log(Level.SEVERE,
-                    "Communication failed with BS. Error Code:{0}", length);
+                System.out.println("Communication failed with BS. Error Code:" + length);
             return null;
         }
         String[] nodes = new String[length];

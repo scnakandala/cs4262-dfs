@@ -42,7 +42,7 @@ public class RoutingTable {
         ArrayList<String> selected= new ArrayList<String>();
         ArrayList<String> temp= new ArrayList<String>(this.nodes);
         Random rand = new Random();
-        for(int i=0;i<3;i++){
+        for(int i=0;i<Math.min(3, this.nodes.size());i++){
             selected.add(temp.remove(rand.nextInt(temp.size())));
         }
         return selected;

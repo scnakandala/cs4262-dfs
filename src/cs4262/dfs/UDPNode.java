@@ -14,7 +14,7 @@ public class UDPNode extends Node {
 
     private final DFSProperties dfsProperties;
     private static UDPNode instance;
-    private MessageWindow messageWindow;
+    private final MessageWindow messageWindow;
 
     public static UDPNode getInstance() {
         if (instance == null) {
@@ -25,7 +25,7 @@ public class UDPNode extends Node {
 
     private UDPNode() {
         this.dfsProperties = DFSProperties.getInstance();
-        this.messageWindow = new MessageWindow();
+        this.messageWindow = MessageWindow.getInstance();
     }
 
     @Override
@@ -53,11 +53,11 @@ public class UDPNode extends Node {
                 int msgLength = Integer.parseInt(receivedString.split(" ")[0]);
                 receivedString = receivedString.substring(0, msgLength);
                 String commandType = receivedString.split(" ")[1];
-                
-                if(Main.debug)
-                Logger.getLogger(BootstrapClient.class.getName()).log(Level.INFO,
-                        "Received Message :{0}", receivedString);
-                
+
+                if (Main.debug) {
+                    System.out.println("Received Message :" + receivedString);
+                }
+
                 switch (commandType) {
                     case "JOIN":
                         String joinHost = receivedString.split(" ")[2];
@@ -70,24 +70,29 @@ public class UDPNode extends Node {
                         RoutingTable.getInstance().removeNode(leaveHost + " " + leavePort);
                         break;
                     case "SER":
-                        String queryHost = receivedString.split(" ")[2];
-                        String queryPort = receivedString.split(" ")[3];
-                        String fileName = receivedString.split(" ")[4];
-                        int hopCount = Integer.parseInt(receivedString.split(" ")[5].trim());
+                        int queryId = Integer.parseInt(receivedString.split(" ")[2]);
+                        if(!messageWindow.shouldCheckOrForwardMessage(queryId)){
+                            break;
+                        }                                                
+                        String queryHost = receivedString.split(" ")[3];
+                        String queryPort = receivedString.split(" ")[4];
+                        String fileName = receivedString.split(" ")[5];
+                        fileName = fileName.replaceAll("_", " ");
+                        int hopCount = Integer.parseInt(receivedString.split(" ")[6].trim());
                         if (FileRepository.getInstance().checkFileExists(fileName)) {
                             ArrayList<String> matchingFiles = FileRepository.getInstance()
                                     .getAllFilesForQuery(fileName);
-                            if(Main.debug)
-                            Logger.getLogger(BootstrapClient.class.getName()).log(Level.INFO,
-                                    "This node has matching file for the query{0} :",
-                                    receivedString);
-                            
+                            if (Main.debug) {
+                                System.out.println("This node has matching file for the query :"+
+                                        receivedString);
+                            }
+
                             String fileList = "";
                             for (int i = 0; i < matchingFiles.size(); i++) {
                                 fileList += fileList + " " + matchingFiles.get(i).replaceAll(" ", "_");
                             }
                             fileList = fileList.trim();
-                            String command = "SEROK " + (matchingFiles.size())
+                            String command = "SEROK " + queryId + " " + (matchingFiles.size())
                                     + " " + host + " " + port + " " + (hopCount)
                                     + " " + fileList;
                             int length = command.toCharArray().length;
@@ -97,55 +102,61 @@ public class UDPNode extends Node {
                             try {
                                 udpClient.sendAndForgetQuery(command, queryHost,
                                         Integer.parseInt(queryPort));
-                                if(Main.debug)
-                                Logger.getLogger(BootstrapClient.class.getName()).
-                                        log(Level.INFO,
-                                                "Sending SEROK message{0} :",
-                                                command);
+                                if (Main.debug) {
+                                    System.out.println("Sending SEROK message :" +
+                                                    command);
+                                }
                             } catch (UnknownHostException ex) {
-                                if(Main.debug)
-                                Logger.getLogger(UDPNode.class.getName()).
-                                        log(Level.SEVERE, null, ex);
+                                ex.printStackTrace();
                             } catch (IOException ex) {
-                                if(Main.debug)
-                                Logger.getLogger(UDPNode.class.getName()).
-                                        log(Level.SEVERE, null, ex);
+                                ex.printStackTrace();
                             }
                         } else {
-                            forwardQuery(queryHost, Integer.parseInt(queryPort),
-                                    fileName, hopCount - 1);
+                            forwardQuery(queryId, queryHost, Integer.parseInt(queryPort),
+                                    fileName.replaceAll(" ", "_"), hopCount - 1);
                         }
                         break;
                     case "SEROK":
                         String[] temp = receivedString.split(" ");
-                        System.out.println("-----Matching files found at host:"
-                                + temp[3] + " port:" + temp[4] + " - Hop Count: " + temp[5] + "-----");
-                        for (int i = 6; i < temp.length; i++) {
+                        System.out.println("-----Matching files found for query id:" + temp[2] + "at host:"
+                                + temp[4] + " port:" + temp[5] + " - Hop Count: " 
+                                + (Main.hopCount - Integer.parseInt(temp[6]) + 1) + "-----");
+                        for (int i = 7; i < temp.length; i++) {
                             System.out.println(" * " + temp[i].replaceAll("_", " "));
                         }
+                        long elapsedTime = (System.currentTimeMillis()-Main.queryStartedTime);
+                        System.out.println(" Time (ms):" + elapsedTime);
                         System.out.println();
+                        
+                        int arrayIndex = Integer.parseInt(temp[2]);
+                        if(Main.queryExecutionSummary[arrayIndex][0]==0 
+                                || Main.queryExecutionSummary[arrayIndex][0]>elapsedTime){
+                           Main.queryExecutionSummary[arrayIndex][0] = elapsedTime; 
+                           Main.queryExecutionSummary[arrayIndex][1] 
+                                   = (Main.hopCount - Integer.parseInt(temp[6]) + 1);
+                        }
                         break;
                     default:
-                        if(Main.debug)
-                        Logger.getLogger(UDPNode.class.getName()).log(Level.SEVERE,
-                                "Invalid Message :{0}", receivedString);
+                        if (Main.debug) {
+                            System.out.println("Invalid Message :"+ receivedString);
+                        }
                         break;
                 }
             }
         } catch (IOException ex) {
-            if(Main.debug)
-            Logger.getLogger(UDPNode.class.getName()).log(Level.SEVERE, null, ex);
+            ex.printStackTrace();
             System.exit(-1);
         }
     }
 
     @Override
-    public void forwardQuery(String ip, int port, String input, int i) {
-        String command = "SER " + ip + " " + port + " " + input + " " + i;
+    public void forwardQuery(int queryId, String ip, int port, String input, int i) {
+        input = input.replaceAll(" ", "_");
+        String command = "SER " + queryId + " " + ip + " " + port + " " + input + " " + i;
         int length = command.toCharArray().length;
         length += 5;
         command = String.format("%04d", length) + " " + command;
-        if (i > 0 && messageWindow.shouldForwardMessage(command)) {
+        if (i > 0) {
             ArrayList<String> peers = RoutingTable.getInstance().getNodes();
             for (int j = 0; j < peers.size(); j++) {
                 String peerHost = peers.get(j).split(" ")[0];
@@ -154,15 +165,14 @@ public class UDPNode extends Node {
                 try {
                     udpClient.sendAndForgetQuery(command, peerHost,
                             Integer.parseInt(peerPort));
-                    if(Main.debug)
-                    Logger.getLogger(BootstrapClient.class.getName()).log(Level.INFO,
-                            "Sent SEARCH Message :{0}", command);
+                    Main.forwardedMessageCounts[queryId]++;
+                    if (Main.debug) {
+                        System.out.println("Sent SEARCH Message " + command + " to " + peerHost +":"+peerPort);
+                    }
                 } catch (UnknownHostException ex) {
-                    if(Main.debug)
-                    Logger.getLogger(UDPNode.class.getName()).log(Level.SEVERE, null, ex);
+                    ex.printStackTrace();
                 } catch (IOException ex) {
-                    if(Main.debug)
-                    Logger.getLogger(UDPNode.class.getName()).log(Level.SEVERE, null, ex);
+                    ex.printStackTrace();
                 }
             }
         }
@@ -177,7 +187,7 @@ public class UDPNode extends Node {
         int length = command.toCharArray().length;
         length += 5;
         command = String.format("%04d", length) + " " + command;
-        ArrayList<String> peers = RoutingTable.getInstance().getNodes();
+        ArrayList<String> peers = RoutingTable.getInstance().getRandomThreeNeighBours();
         for (int i = 0; i < peers.size(); i++) {
             String temp = peers.get(i);
             String peerHost = temp.split(" ")[0];
@@ -185,15 +195,14 @@ public class UDPNode extends Node {
             UDPClient udpClient = new UDPClient();
             try {
                 udpClient.sendAndForgetQuery(command, peerHost, peerPort);
-                if(Main.debug)
-                Logger.getLogger(BootstrapClient.class.getName()).log(Level.INFO,
-                        "Sent JOIN Message :{0}", command);
+                if (Main.debug) {
+                    System.out.println("Sent JOIN Message :" + command 
+                            + " to "+peerHost+":"+peerPort);
+                }
             } catch (UnknownHostException ex) {
-                if(Main.debug)
-                Logger.getLogger(UDPNode.class.getName()).log(Level.SEVERE, null, ex);
+                ex.printStackTrace();
             } catch (IOException ex) {
-                if(Main.debug)
-                Logger.getLogger(UDPNode.class.getName()).log(Level.SEVERE, null, ex);
+                ex.printStackTrace();
             }
         }
     }
@@ -215,16 +224,21 @@ public class UDPNode extends Node {
             UDPClient udpClient = new UDPClient();
             try {
                 udpClient.sendAndForgetQuery(command, peerHost, peerPort);
-                if(Main.debug)
-                Logger.getLogger(BootstrapClient.class.getName()).log(Level.INFO,
-                        "Sent LEAVE Message :{0}", command);
+                if (Main.debug) {
+                    System.out.println("Sent LEAVE Message :" + command 
+                            + " to "+peerHost+":"+peerPort);
+                }
             } catch (UnknownHostException ex) {
-                if(Main.debug)
-                Logger.getLogger(UDPNode.class.getName()).log(Level.SEVERE, null, ex);
+                ex.printStackTrace();
             } catch (IOException ex) {
-                if(Main.debug)
-                Logger.getLogger(UDPNode.class.getName()).log(Level.SEVERE, null, ex);
+                ex.printStackTrace();
             }
         }
+    }
+
+    @Override
+    public void startNode() {
+        this.informJoinToPeers();
+        this.start();
     }
 }
