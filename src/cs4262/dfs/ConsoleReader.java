@@ -126,7 +126,7 @@ public class ConsoleReader extends Thread {
 
     private void resetStatistics() {
         Main.forwardedMessageCounts = new long[250];
-        Main.queryExecutionSummary = new long[50][2];
+        Main.queryExecutionSummary = new long[250][2];
         System.out.println("Reseted statistics successfully");
     }
 }

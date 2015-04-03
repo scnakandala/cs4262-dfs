@@ -39,7 +39,7 @@ public class PerformanceTest extends Thread {
             Main.queryStartedTime = System.currentTimeMillis();
             if (FileRepository.getInstance().checkFileExists(query)) {
                 long elapasedTime = System.currentTimeMillis() - Main.queryStartedTime;
-                Main.queryExecutionSummary[queryId][0] = elapasedTime;
+                Main.queryExecutionSummary[queryId][0] = -1;
                 Main.queryExecutionSummary[queryId][1] = 0;
             } else {
                 String ip = RoutingTable.getInstance().getMyIP();

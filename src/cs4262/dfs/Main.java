@@ -8,7 +8,7 @@ public class Main {
     public static boolean debug = true;
     public static long queryStartedTime;
     
-    public static long[][] queryExecutionSummary = new long[50][2];
+    public static long[][] queryExecutionSummary = new long[250][2];
     public static long[] forwardedMessageCounts = new long[250];
     
     public static void main(String[] args) throws InterruptedException {
@@ -22,7 +22,7 @@ public class Main {
             }
         }
         
-        final Node node = ThriftNode.getInstance();
+        final Node node = UDPNode.getInstance();
         Runtime.getRuntime().addShutdownHook(new Thread() {
             public void run() {
                 bootstrapClient.unregister();

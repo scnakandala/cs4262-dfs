@@ -157,7 +157,7 @@ public class UDPNode extends Node {
         length += 5;
         command = String.format("%04d", length) + " " + command;
         if (i > 0) {
-            ArrayList<String> peers = RoutingTable.getInstance().getNodes();
+            ArrayList<String> peers = RoutingTable.getInstance().getRandomThreeNeighBours();
             for (int j = 0; j < peers.size(); j++) {
                 String peerHost = peers.get(j).split(" ")[0];
                 String peerPort = peers.get(j).split(" ")[1];
